@@ -1,0 +1,12 @@
+First, note that complete20.vcf contains a sample of 1000 SNPs from
+chromosome 20 over 2504 individuals from the 1000 Genomes Project,
+filtered so that MAF > 0.01. Next, missing20.vcf contains the same
+sample of 1000 SNPs from complete20.vcf but only on a subset of 500
+individuals. In it, the true genotype is masked for at 10% of the SNPs
+(genotypes are "missing" at such SNPs across all indivudals). Next,
+ref20.vcf contains the complete data for the 2004 individuals not
+included in missing20.vcf. Further, we note that subset20.vcf contains
+all 2504 individuals, for which 500 (the same 500 as in missing20.vcf)
+have some missing data. Lastly, test.vcf is the output of the BEAGLE
+algorithm's imputation when run on missing20.vcf with ref20.vcf as the
+reference panel.
