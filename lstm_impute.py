@@ -11,7 +11,7 @@ tot_indivs = 2504
 test_indivs = 500
 train_indivs = 2004
 input_dim = 5
-hidden_size = 16
+hidden_size = 10
 output_dim = 3
 masked_indices = []
 X_train = np.zeros((seq_len, train_indivs, input_dim))
@@ -84,102 +84,67 @@ class LSTM(nn.Module):
         out, _ = self.lstm(x, (h0, c0))
         # We'll see if this is a bad idea
         #out = out[:,:, :self.hidden_size] + out[:,:, self.hidden_size: ]
-        #print(out.size())
-        jlen = out.size(0)
-        ilen = out.size(1)
-        print(out.size())
         #print('{} {}'.format(jlen, ilen))
         #out = [[self.fc(out[jj, ii, :]) for ii in range(ilen)] for jj in range(jlen)]
         #out = out.reshape(x.size(0) * x.size(1), -1)
-        print(out.size())
-        print("HELLO")
+        #print(out.size())
         pred = self.fc(out)
-        print(pred.size())
         return pred
         #return out
 
-'''
-def load_batch(X, Y, window_size=100, batch_size=10):
-    Xs = np.zeros((window_size, batch_size, input_dim))
-    Ys = np.zeros((window_size, batch_size))
-    idxs = random.sample(range(len(Xs[0])), batch_size'''
-
+def load_batch(X, Y, start, end, batch_size=10):
+    Xs = np.zeros((end - start, batch_size, input_dim))
+    Ys = np.zeros((end - start, batch_size))
+    idxs = random.sample(range(len(X[0])), batch_size)
+    for ii, idx in enumerate(idxs):
+        Xs[:, ii] = X[start:end, idx]
+        Ys[:, ii] = Y[start + 1:end + 1, idx]
+    Xt = torch.tensor(Xs).float()
+    Yt = torch.tensor(Ys).type(torch.LongTensor)
+    return Xt, Yt
+    
 criterion = nn.CrossEntropyLoss()
-learning_rate = .001
+learning_rate = .005 #01
 model = LSTM(input_dim, hidden_size, output_dim)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-#xx = np.array(X_train[0:50][0:10])
-print(X_train.shape)
-print(X_train[0:window_size,0:batch_size].shape)
-print('-----')
-xt = torch.tensor(X_train[0:window_size, 0:batch_size]).float()
-print(xt.size())
-outputs = model(xt)
-print(outputs)
-print(outputs.size())
-yy = torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor)
-print(yy)
-print('SuP')
-loss_sum = []
-for idx, o in enumerate(outputs):
-    loss_sum.append(criterion(o, yy[idx]))
-loss = sum(loss_sum)
-print(loss)
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
 
-outputs = model(xt)
-print(outputs)
-print(outputs.size())
-yy = torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor)
-print(yy)
-print('SuP')
-loss_sum = []
-for idx, o in enumerate(outputs):
-    loss_sum.append(criterion(o, yy[idx]))
-loss = sum(loss_sum)
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
+start = 0
+end = window_size
+# will eventually be indented one level
+masked = []
+for jj in range(start, end):
+    if X_train[jj, 0, 4]:
+        masked.append(jj - 1)
+print(masked)
+        
+for i in range(100):
+    xt, yt = load_batch(X_train, Y_train, start, end)
+    outputs = model(xt)
+    loss_sum = []
+    for idx, o in enumerate(outputs):
+        if (idx + start) in masked:
+            loss_sum.append(criterion(o, yt[idx]))
+        else:
+            loss_sum.append(.05 * criterion(o, yt[idx]))
+    loss = sum(loss_sum)
+    print(loss)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
 
-print(loss)
-loss = torch.sum(criterion(outputs, yy), dim = 1)
-loss_sum = criterion(outputs, torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor))
+print(masked)
+with torch.no_grad():
+    for aa in range(100):
+        ts = torch.tensor(X_test[0:window_size,aa,:]).float()
+        #print(ts.unsqueeze(1).size())
+        op = model(ts.unsqueeze(1))
+        #print(ts)
+        #print(op)
+        for ii in masked:
+            #print(ts[ii])
+            print(op[ii])
+            print(Y_test[ii][0])        
 
-for idx0, o in enumerate(outputs):
-    #print(o)
-    print(o[0].tolist())
-    for idx1, p in enumerate(o):
-        print(p)
-        print(p.data.size())
-        print(Y_train[idx0])
-        print(Y_train[idx0, idx1])
-        yy = torch.tensor([Y_train[idx0, idx1]]).type(torch.LongTensor)
-        print(yy.size())
-        loss_sum += criterion(p.data, yy) #torch.tensor(Y_train[idx0, idx1]).type(torch.LongTensor))
-    #otensor = torch.tensor([x.tolist() for x in o]).float()
-    #####otensor = torch.tensor([x[0:output_dim] for x in o])
-    #print(otensor.size())
-    #print(otensor)
-    '''yy = torch.tensor(Y_train[idx0, 0:batch_size]).type(torch.LongTensor)
-    print(yy.size())
-    print(yy)
-    loss_sum += criterion(o, yy)'''
-print(loss_sum)
-optimizer.zero_grad()
-loss_sum.backward()
-optimizer.step()
-#print(outputs[0:4])
-jlen = len(outputs)
-ilen = len(outputs[0])
-predicted = [[torch.argmax(outputs[j][i].data) for i in range(ilen)] for j in range(jlen)]
-print(outputs[0][0])
-print(predicted[0])
-#loss_sum = 0.0
-'''for idx0, pred in enumerate(predicted):
-    for idx1, p in enumerate(pred):
-        loss = criterion(p, '''
 #print(outputs[0])
 #print(predicted)
 #lstm = torch.nn.LSTM(input_size=input_dim, hidden_size=output_dim, bidirectional=True)
