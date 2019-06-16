@@ -130,6 +130,7 @@ print(masked)
 
 acc = []
 for st in masked:
+    tlosses = []
     start = int(st - window_size/2)
     if start < 0:
         start = 0
@@ -150,11 +151,15 @@ for st in masked:
             loss_sum.append(.0 * criterion(o, yt[idx]))
         loss = sum(loss_sum)'''
         loss = criterion(outputs, yt[st - start])
+        tlosses.append(loss)
         if (i % 24) == 0:
             print("Training loss: {}".format(loss))
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+    np.save("tlosses.npy", np.array(tlosses))
+    break
 
     with torch.no_grad():
         sum = 0
