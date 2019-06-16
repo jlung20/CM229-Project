@@ -117,10 +117,33 @@ print(xt.size())
 outputs = model(xt)
 print(outputs)
 print(outputs.size())
-yy = torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor).size()
+yy = torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor)
 print(yy)
+print('SuP')
+loss_sum = []
 for idx, o in enumerate(outputs):
-    loss = criterion(o, yy[idx])
+    loss_sum.append(criterion(o, yy[idx]))
+loss = sum(loss_sum)
+print(loss)
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+outputs = model(xt)
+print(outputs)
+print(outputs.size())
+yy = torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor)
+print(yy)
+print('SuP')
+loss_sum = []
+for idx, o in enumerate(outputs):
+    loss_sum.append(criterion(o, yy[idx]))
+loss = sum(loss_sum)
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+print(loss)
 loss = torch.sum(criterion(outputs, yy), dim = 1)
 loss_sum = criterion(outputs, torch.tensor(Y_train[0:window_size, 0:batch_size]).type(torch.LongTensor))
 
