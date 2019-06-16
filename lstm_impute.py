@@ -151,12 +151,14 @@ for st in masked:
             loss_sum.append(.0 * criterion(o, yt[idx]))
         loss = sum(loss_sum)'''
         loss = criterion(outputs, yt[st - start])
-        tlosses.append(loss)
+        tlosses.append(float(loss.data))
         if (i % 24) == 0:
             print("Training loss: {}".format(loss))
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+    np.save("tlosses.npy", np.array(tlosses))
+    break
 
     with torch.no_grad():
         sum = 0
@@ -183,7 +185,7 @@ for st in masked:
         tp = (st, (1.0*sum/test_indivs))
         #print(tp)
         acc.append(tp)
-np.save("accs.npy", np.array(acc))
+#np.save("accs.npy", np.array(acc))
         #if aa == 99:
         #    print(op)
 #print(outputs[0])
