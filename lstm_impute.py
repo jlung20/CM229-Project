@@ -138,7 +138,7 @@ for st in masked:
         start = len(X_train) - window_size
     end = start + window_size
     print("Window of length {} starting at {}".format(window_size, start))
-    for i in range(200):
+    for i in range(100):
         xt, yt = load_batch(X_train, Y_train, start, end)
         #outputs = model(xt)
         outputs = model(xt, st - start)
@@ -157,9 +157,6 @@ for st in masked:
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-    np.save("tlosses.npy", np.array(tlosses))
-    break
 
     with torch.no_grad():
         sum = 0
@@ -186,7 +183,7 @@ for st in masked:
         tp = (st, (1.0*sum/test_indivs))
         #print(tp)
         acc.append(tp)
-np.save("accs.npy", acc)
+np.save("accs.npy", np.array(acc))
         #if aa == 99:
         #    print(op)
 #print(outputs[0])
