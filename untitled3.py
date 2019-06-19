@@ -67,6 +67,7 @@ with open('complete20.vcf', 'r') as og, open('missing20.vcf', 'r') as missing, o
     print(maf)
     print(results)
     print(results_1)
+    print(accs)
     lstm_res = []
     lmaf = []
     for tp in accs:
